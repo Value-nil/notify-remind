@@ -16,12 +16,12 @@ map<string, string> settings = {
         {"BODY", "Hazlo"},
         {"APP_NAME", "THE app"},
         {"EXPIRE_TIME", "-1"},
-        {"NOTIFICATION_URGENCY", "1"}
+        {"URGENCY", "MEDIUM"}
 };
 map<string, NotifyUrgency> urgency = {
-    {"0", NotifyUrgency::NOTIFY_URGENCY_LOW},
-    {"1", NotifyUrgency::NOTIFY_URGENCY_NORMAL},
-    {"2", NotifyUrgency::NOTIFY_URGENCY_CRITICAL}
+    {"LOW", NotifyUrgency::NOTIFY_URGENCY_LOW},
+    {"MEDIUM", NotifyUrgency::NOTIFY_URGENCY_NORMAL},
+    {"HIGH", NotifyUrgency::NOTIFY_URGENCY_CRITICAL}
 };
 
 
@@ -41,7 +41,10 @@ void sendNotification(){
     }
     notify_notification_set_timeout(notify, timeout);
 
-    notify_notification_set_urgency(notify, urgency[settings["NOTIFICATION_URGENCY"]]);
+
+    NotifyUrgency urgencyLevel = urgency[settings["URGENCY"]];
+    notify_notification_set_urgency(notify, urgencyLevel);
+    
     
     GError* someError = nullptr;
     gboolean success = notify_notification_show(notify, &someError);
@@ -89,15 +92,43 @@ int getFileSize(){
     }
 }
 
+void removeSpaces(string &toRemove){
+    int removing = 0;
+    for(int i = 0; i < toRemove.length(); i++){
+        if(toRemove[i] == ' '){
+            removing++;
+        }
+        else break;
+    }
+    toRemove.erase(0, removing);
+    //use removing variable now as starting pos
+    removing = 0;
+    for(int i = toRemove.length()-1; i >= 0; i--){
+        if(toRemove[i] != ' '){
+            removing = i+1;
+            break;
+        }
+    }
+    if(removing != toRemove.length())
+        toRemove.erase(removing, toRemove.npos);
+    cout << '"' + toRemove + '"' + '\n';
+}
+
+void setSetting(vector<string>& setting){
+    removeSpaces(setting[0]);
+    removeSpaces(setting[1]);
+    if(setting[1] != "" && settings[setting[0]] != ""){
+        settings[setting[0]] = setting[1];
+    }
+}
 
 
-
-void processFile(char* read){
+void processRead(char* read){
     vector<string> result = slice(read, '\n', 0);
     for(int i = 0; i < result.size(); i++){
         vector<string> result2 = slice(result[i], '=', 2);
-        if(result2[1] != "" && settings[result2[0]] != ""){
-            settings[result2[0]] = result2[1];
+        if(result2.size() == 2){
+            setSetting(result2);
         }
     }
 }
@@ -118,7 +149,7 @@ int main(){
     read(filedes, buff, size);
     buff[size] = '\0';
     
-    processFile(buff);
+    processRead(buff);
     
     sendNotification();
     
