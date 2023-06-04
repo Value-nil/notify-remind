@@ -13,7 +13,7 @@ using namespace std;
 
 map<string, string> settings = {
         {"SUMMARY", "Levanta la vista por 20 segundos!"},
-        {"BODY", "Hazlo"},
+        {"BODY", ""},
         {"APP_NAME", "THE app"},
         {"EXPIRE_TIME", "-1"},
         {"URGENCY", "MEDIUM"}
